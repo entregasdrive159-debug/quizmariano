@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Caminando con María</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #e8e8e8;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .quiz-container {
+      width: 100%;
+      max-width: 430px;
+      background: #fff;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* ── Screens ── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 24px 20px 36px;
+      animation: fadeIn 0.3s ease;
+    }
+    .screen.active { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Logo ── */
+    .logo-wrap { text-align: center; margin-bottom: 10px; }
+    .logo-img  { width: 54px; height: 54px; object-fit: contain; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      width: 100%;
+      height: 7px;
+      background: #E5E7EB;
+      border-radius: 4px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #2563EB;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    /* ── Typography ── */
+    .title-blue {
+      color: #2563EB;
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .title-black {
+      font-size: 20px;
+      font-weight: 800;
+      color: #111827;
+      text-align: center;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .body-text {
+      font-size: 15px;
+      color: #374151;
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .name-cyan { color: #06B6D4; font-weight: 800; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      letter-spacing: 0.4px;
+      transition: opacity .15s, transform .1s;
+      text-decoration: none;
+    }
+    .btn:active { transform: scale(0.98); opacity: 0.88; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; animation: none !important; }
+    .btn-blue  { background: #2563EB; color: #fff; }
+    .btn-green { background: #16A34A; color: #fff; text-transform: uppercase; font-size: 16px; }
+
+    /* ── Input ── */
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .input-wrap:focus-within { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .input-icon  { display: none; }
+    .input-field {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 16px;
+      color: #111827;
+      outline: none;
+      font-family: inherit;
+    }
+    .input-field::placeholder { color: #9CA3AF; }
+    textarea.input-field { resize: none; min-height: 90px; line-height: 1.5; }
+
+    /* ── Quiz Option Cards ── */
+    .option-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1.5px solid #E5E7EB;
+      border-radius: 12px;
+      margin-bottom: 11px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      text-align: left;
+      background: #fff;
+    }
+    .option-card:hover    { border-color: #93C5FD; background: #EFF6FF; }
+    .option-card.selected { border-color: #2563EB; background: #EFF6FF; }
+    .option-icon { font-size: 26px; width: 38px; text-align: center; flex-shrink: 0; }
+    .option-text { font-size: 14px; font-weight: 500; color: #111827; line-height: 1.4; }
+
+    /* ── Spacer ── */
+    .spacer { flex: 1; }
+
+    /* ══════════════════════════════════════════
+       PANTALLA 1 — especial
+    ══════════════════════════════════════════ */
+    #screen-1 { padding-top: 28px; text-align: center; }
+    #screen-1 .title-blue { font-size: 26px; }
+    #screen-1 .mid-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 18px;
+      line-height: 1.4;
+    }
+    .hero-img { width: 100%; border-radius: 16px; margin-bottom: 22px; display: block; }
+    #screen-1 .btn { font-size: 20px; padding: 20px; font-weight: 800; border-radius: 12px; }
+    .footer-note {
+      font-size: 13px;
+      color: #6B7280;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+    .xquiz-tag { display: none; }
+
+    /* Barra de progreso por pantalla — debajo del logo */
+    .progress-fill {
+      background: linear-gradient(90deg, #2563EB 0%, #60a5fa 100%);
+      transition: width 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(37,99,235,.55); transform: scale(1); }
+      50%  { box-shadow: 0 0 0 12px rgba(37,99,235,0); transform: scale(1.02); }
+      100% { box-shadow: 0 0 0 0 rgba(37,99,235,0); transform: scale(1); }
+    }
+    .btn-pulse { animation: pulse 1.8s ease-in-out infinite; }
+
+    /* ══════════════════════════════════════════
+       PANTALLA 7 — Audio recibido estilo Instagram
+    ══════════════════════════════════════════ */
+    .audio-insta {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .audio-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center 8%;
+      flex-shrink: 0;
+      border: 1.5px solid #e5e7eb;
+    }
+    .audio-bubble {
+      flex: 1;
+      background: #EFEFEF;
+      border-radius: 22px 22px 22px 6px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .play-btn {
+      width: 42px;
+      height: 42px;
+      background: #2563EB;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background .2s, transform .1s;
+      box-shadow: 0 2px 8px rgba(37,99,235,.35);
+    }
+    .play-btn:hover  { background: #1d4ed8; }
+    .play-btn:active { transform: scale(.93); }
+    .play-btn svg    { fill: #fff; width: 14px; height: 14px; margin-left: 2px; }
+    .waveform {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 2.5px;
+      height: 28px;
+    }
+    .wave-bar {
+      width: 3px;
+      background: #C4C4C4;
+      border-radius: 99px;
+      transition: height .08s ease;
+    }
+    .wave-bar.played { background: #2563EB; }
+    .audio-time {
+      font-size: 11px;
+      font-weight: 600;
+      color: #6B7280;
+      white-space: nowrap;
+      min-width: 26px;
+      text-align: right;
+    }
+
+    /* ══════════════════════════════════════════
+       PANTALLA 8 — Tarjeta de oración
+    ══════════════════════════════════════════ */
+    .prayer-card {
+      background: linear-gradient(160deg, #eff6ff 0%, #fdf4ff 100%);
+      border: 1.5px solid #bfdbfe;
+      border-radius: 16px;
+      padding: 14px 14px 16px;
+      margin-bottom: 18px;
+      text-align: center;
+      position: relative;
+    }
+    .prayer-card::before {
+      content: '✝';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2563EB;
+      color: #fff;
+      font-size: 13px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 24px;
+    }
+    .prayer-card-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #2563EB;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 14px;
+    }
+    .prayer-text {
+      font-size: 12.5px;
+      color: #1e3a8a;
+      line-height: 1.55;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    /* ══════════════════════════════════════════
+       PANTALLA 10 — Cargando
+    ══════════════════════════════════════════ */
+    #screen-10 {
+      align-items: center;
+      justify-content: flex-start;
+      text-align: center;
+      padding: 16px 24px 40px;
+    }
+    .loading-prayer {
+      font-size: 16px;
+      font-weight: 600;
+      color: #111827;
+      line-height: 1.7;
+      margin-top: 40px;
+      margin-bottom: 28px;
+    }
+    .loading-prayer .prece-text { color: #06B6D4; font-weight: 700; }
+    .produto-cover {
+      width: 170px;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto 28px;
+    }
+    .loading-bar-outer {
+      width: 100%;
+      height: 22px;
+      background: #E5E7EB;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .loading-bar-inner {
+      height: 100%;
+      background: #2563EB;
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.15s linear;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 8px;
+    }
+    .loading-pct {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .loading-status {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    /* ══════════════════════════════════════════
+       PANTALLA 11 — Página de ventas
+    ══════════════════════════════════════════ */
+    #screen-11 {
+      padding: 0;
+      min-height: unset;
+      display: none;
+      flex-direction: column;
+    }
+    #screen-11.active { display: flex; }
+
+    .sales-top {
+      padding: 22px 20px 0;
+      text-align: center;
+    }
+    .sales-ready {
+      color: #06B6D4;
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .sales-main-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #111827;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+    .sales-main-title span { color: #2563EB; }
+    .sales-guide-desc {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .sales-prod-img {
+      width: 85%;
+      border-radius: 10px;
+      display: block;
+      margin: 0 auto 18px;
+    }
+    .price-block { text-align: center; margin-bottom: 18px; }
+    .price-de    { font-size: 14px; color: #EF4444; text-decoration: line-through; font-weight: 600; }
+    .price-por   { font-size: 14px; color: #374151; font-weight: 600; }
+    .price-value { font-size: 40px; font-weight: 900; color: #111827; line-height: 1.1; display: block; }
+    .price-parcel { font-size: 13px; color: #6B7280; }
+
+    .sales-cta-price {
+      font-size: 13px;
+      color: #374151;
+      text-align: center;
+      margin-top: 8px;
+      margin-bottom: 6px;
+    }
+    .sales-cta-price s { color: #EF4444; }
+    .sales-cta-price strong { color: #111827; }
+
+    .section-divider {
+      border: none;
+      border-top: 1px solid #F3F4F6;
+      margin: 4px 0;
+    }
+
+    .sales-section { padding: 20px; }
+    .sales-section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #111827;
+      text-align: center;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .benefit-block { margin-bottom: 20px; }
+    .benefit-block-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .benefit-block-text {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.55;
+    }
+
+    .check-list { margin-bottom: 16px; }
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .check-circle {
+      width: 20px;
+      height: 20px;
+      background: #DCFCE7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+      font-size: 11px;
+      color: #16A34A;
+      font-weight: 700;
+    }
+    .check-label {
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.5;
+    }
+    .check-label strong { color: #111827; }
+
+    .cat-card {
+      background: #f0fdf4;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      border-left: 3px solid #16A34A;
+    }
+    .cat-title { font-size: 14px; font-weight: 800; color: #111827; margin-bottom: 4px; }
+    .cat-desc  { font-size: 13px; color: #166534; line-height: 1.55; }
+
+    /* Carousel */
+    .carousel-outer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .carousel { overflow: hidden; position: relative; flex: 1; }
+    .c-track   { display: flex; transition: transform 0.4s ease; }
+    .c-slide   { min-width: 100%; }
+    .c-slide img { width: 100%; border-radius: 12px; display: block; }
+    .c-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #2563EB;
+      color: #fff;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, transform .1s;
+      box-shadow: 0 2px 8px rgba(37,99,235,.3);
+    }
+    .c-arrow:hover  { background: #1d4ed8; }
+    .c-arrow:active { transform: scale(.92); }
+    .c-dots {
+      display: flex;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 12px;
+    }
+    .c-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #D1D5DB;
+      cursor: pointer;
+      border: none;
+      transition: background .2s;
+    }
+    .c-dot.on { background: #2563EB; }
+
+    .testimonials-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #111827;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .testimonials-sub {
+      font-size: 14px;
+      color: #374151;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .guarantee-block { text-align: center; padding: 20px; }
+    .guarantee-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+    .guarantee-text {
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .guarantee-badge { width: 150px; display: block; margin: 0 auto; }
+
+    .sales-footer { text-align: center; padding: 16px; color: #9CA3AF; font-size: 12px; }
+
+    /* Highlight box para "LO QUE ENCONTRARÁS" */
+    .highlight-box {
+      background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .highlight-box-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1D4ED8;
+      text-align: center;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Sticky CTA en página de ventas */
+    .sticky-cta {
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+      padding: 12px 20px 16px;
+      box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+<div class="quiz-container">
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 1 — Bienvenida
+  ═══════════════════════════════════════ -->
+  <div class="screen active" id="screen-1">
+    <p class="title-blue">ESTO NO ES CASUALIDAD...</p>
+    <p class="body-text">Si llegaste hasta aquí, es porque <strong>ELLA TE LLAMÓ</strong> ❤️ 🙏</p>
+    <p class="mid-title" style="font-size:18px;font-weight:800;text-align:center;margin-bottom:18px;line-height:1.4;color:#2563EB;">
+      Pero ahora... ¿VAS A TENER EL VALOR DE DECIR "SÍ"?
+    </p>
+    <img src="assets/hero.png" alt="Caminando con María" class="hero-img" style="width:80%;margin:0 auto 22px;">
+    <button class="btn btn-blue btn-pulse" style="font-size:16px;padding:18px;font-weight:800;border-radius:12px;" onclick="goTo(2)">
+      INICIAR JORNADA
+    </button>
+    <p class="footer-note">📋 Responde algunas preguntas rápidas... Y recibe un Devocional hecho para ti. Con oración, dirección y fe.</p>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 2 — Captura de nombre
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-2">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">¿Deseas dejarnos tu nombre para incluirte en nuestro Libro de Oraciones?</p>
+    <p class="body-text">Con gran alegría, llevaremos tu nombre al altar en nuestras oraciones diarias. Al registrarlo aquí, unimos tu intención a nuestra comunidad de fe, confiando todo al Corazón Misericordioso de Jesús y a la intercesión de Nuestra Señora. 🙏🌹</p>
+
+    <div class="input-wrap">
+      <span class="input-icon">👤</span>
+      <input type="text" class="input-field" id="nome-input" placeholder="Escribe tu nombre aquí" maxlength="60" autocomplete="given-name">
+    </div>
+
+    <button class="btn btn-blue" id="btn-nome" onclick="submitNome()" disabled>Enviar</button>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 3 — Confirmación del nombre
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-3">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">
+      <span class="name-cyan" id="nome-confirm"></span> ¡es una bendición contar con tu presencia! 🙏
+    </p>
+    <p class="body-text">Tu nombre ya ha sido incluido con cuidado en nuestro Libro de Oraciones. Será recordado con cariño y fe cada día, ante el altar del Señor.</p>
+
+    <button class="btn btn-blue" onclick="goTo(4)">CONTINUAR</button>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 4 — Pregunta 1: Área
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-4">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">¿En qué áreas deseas poner tu corazón en este Devocional?</p>
+
+    <div class="option-card" onclick="selectAndGo(this, 5)">
+      <span class="option-icon">💵</span>
+      <span class="option-text">Mi vida financiera y profesional</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 5)">
+      <span class="option-icon">❤️</span>
+      <span class="option-text">Armonía en las relaciones familiares</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 5)">
+      <span class="option-icon">🔮</span>
+      <span class="option-text">Protección y fortaleza espiritual</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 5)">
+      <span class="option-icon">🙏</span>
+      <span class="option-text">Mi camino de fe</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 5)">
+      <span class="option-icon">💬</span>
+      <span class="option-text">Otra intención</span>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 5 — Pregunta 2: Corazón espiritual
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-5">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">¿Cómo está tu corazón espiritual en este momento?</p>
+
+    <div class="option-card" onclick="selectAndGo(this, 6)">
+      <span class="option-icon">❤️</span>
+      <span class="option-text">Siento que necesito una purificación interior</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 6)">
+      <span class="option-icon">🌿</span>
+      <span class="option-text">Busco una renovación espiritual</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 6)">
+      <span class="option-icon">🕊️</span>
+      <span class="option-text">Estoy en paz, pero deseo más claridad y dirección</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 6)">
+      <span class="option-icon">🛡️</span>
+      <span class="option-text">Siento necesidad de protección y paz espiritual</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 6)">
+      <span class="option-icon">🙏</span>
+      <span class="option-text">Quiero fortalecer mi fe y mi comunión con Dios</span>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 6 — Pregunta 3: Algo bloqueado
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-6">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">¿Sientes que hay algo en tu vida que, a pesar de tus esfuerzos, aún no se resuelve?</p>
+
+    <div class="option-card" onclick="selectAndGo(this, 7)">
+      <span class="option-icon">😟</span>
+      <span class="option-text">Sí... Siento que todo está bloqueado y nada parece salir bien.</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 7)">
+      <span class="option-icon">😔</span>
+      <span class="option-text">Sí... Algunas áreas de mi vida parecen estancadas.</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 7)">
+      <span class="option-icon">🥰</span>
+      <span class="option-text">Gracias a Dios, siento que todo está fluyendo bien en este momento.</span>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 7 — Oración en audio
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-7">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">Oremos juntos con fe y confianza.</p>
+    <p class="body-text">Haz clic en el botón de abajo para escuchar esta oración y poner tus intenciones bajo la protección del Corazón Inmaculado de María. 🙏 🌹❤️</p>
+
+    <div class="audio-insta">
+      <img src="assets/padre.png" alt="Padre" class="audio-avatar">
+      <div class="audio-bubble">
+        <button class="play-btn" id="play-btn" onclick="togglePlay()">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon id="play-icon" points="5,3 19,12 5,21"/>
+          </svg>
+        </button>
+        <div class="waveform" id="waveform"></div>
+        <span class="audio-time" id="audio-time">0:32</span>
+      </div>
+    </div>
+
+    <button class="btn btn-blue" onclick="goTo(8)">Continuar</button>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 8 — Pedido / Oración
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-8">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">¡Dios quiere bendecirte hoy! ✨🙏</p>
+
+    <p class="body-text">
+      <span class="name-cyan" id="nome-prece"></span>, si pudieras ver
+      <strong>tu mayor deseo cumplido</strong>, ¿qué pedirías?
+    </p>
+
+    <p class="body-text" style="font-size:14px;">
+      Tal vez sea <strong>una sanación</strong>, la <strong>restauración de tu familia</strong>,
+      la <strong>liberación de un vicio</strong>, la <strong>prosperidad financiera</strong>,
+      el reencuentro con <strong>el amor verdadero</strong> o, simplemente,
+      la <strong>paz en el corazón</strong>...
+    </p>
+
+    <p class="body-text" style="font-size:14px;font-weight:700;color:#1e3a8a;">
+      Declara con fe tu intención. Nuestra Señora llevará tu súplica
+      al corazón de Jesús e intercederá poderosamente por ti. ❤️🌹
+    </p>
+
+    <!-- Oración para leer -->
+    <div class="prayer-card">
+      <p class="prayer-card-label">📖 Lee esta oración con el corazón abierto:</p>
+      <p class="prayer-text">
+        "Oh María, Llena de Gracia,<br>
+        Madre de misericordia y refugio de los pecadores,<br>
+        me postro ante Ti<br>
+        con el corazón abierto y lleno de fe.<br><br>
+        Recibe mi súplica y llévala<br>
+        al Sagrado Corazón de Tu Hijo Jesús,<br>
+        pues sé que todo lo que Le pidas<br>
+        no Te será negado.<br><br>
+        Intercede por mí en este momento,<br>
+        cúbreme con Tu manto de gracia<br>
+        y que Tu poderosa intercesión<br>
+        abra los caminos que parecen cerrados.<br><br>
+        Amén. 🌹🙏"
+      </p>
+    </div>
+
+    <!-- Campo de intención compacto -->
+    <p style="font-size:13px;font-weight:700;color:#374151;text-align:center;margin-bottom:10px;">
+      Ahora escribe tu intención personal:
+    </p>
+    <div class="input-wrap">
+      <span class="input-icon">🙏</span>
+      <input type="text" class="input-field" id="prece-input" placeholder="Escribe tu oración aquí...">
+    </div>
+
+    <button class="btn btn-blue" id="btn-prece" onclick="submitPrece()" disabled>CONTINUAR</button>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 9 — Pregunta 4: ¿Es valioso?
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-9">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="Logo" class="logo-img"></div>
+    <div class="progress-wrap"><div class="progress-fill" style="width:0%"></div></div>
+
+    <p class="title-black">Si pudieras vivir las enseñanzas de Jesús de forma práctica en tu vida diaria con la intercesión de Nuestra Señora, ¿eso sería valioso para ti?</p>
+
+    <div class="option-card" onclick="selectAndGo(this, 10)">
+      <span class="option-icon">🙏</span>
+      <span class="option-text">¡Sí, sería muy valioso para mi vida!</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 10)">
+      <span class="option-icon">👐</span>
+      <span class="option-text">Sí, creo que sería muy útil.</span>
+    </div>
+    <div class="option-card" onclick="selectAndGo(this, 10)">
+      <span class="option-icon">🤔</span>
+      <span class="option-text">Tal vez... depende de cómo se aplicaría.</span>
+    </div>
+
+    <div style="margin-top:10px;padding:14px;background:#EFF6FF;border-radius:10px;text-align:center;">
+      <p style="font-size:14px;font-weight:700;color:#2563EB;line-height:1.5;">¡Estás a punto de vivir una gran transformación espiritual! 🙏❤️</p>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 10 — Cargando
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-10">
+    <p class="loading-prayer">
+      En este Devocional los caminos se abrirán y mi deseo de <span class="prece-text" id="prece-display"></span> se cumplirá en el nombre de Jesús por la intercesión de Nuestra Señora.
+    </p>
+    <img src="assets/produto-carga.png" alt="365 Días con María" class="produto-cover">
+    <div class="loading-bar-outer">
+      <div class="loading-bar-inner" id="loading-bar">
+        <span class="loading-pct" id="loading-pct">0%</span>
+      </div>
+    </div>
+    <p class="loading-status">Generando tu Devocional 🙏❤️</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       PANTALLA 11 — Página de ventas
+  ═══════════════════════════════════════ -->
+  <div class="screen" id="screen-11">
+
+    <!-- Encabezado -->
+    <div class="sales-top">
+      <p class="sales-ready">¡Tu Devocional con María está listo! <span style="color:#111827;">Mira abajo 🙏</span></p>
+      <p class="sales-main-title">Transforma Tu Vida Espiritual en <span>365 Días con María:</span> Un devocional para conectarte con la Madre de Cristo y Fortalecer Tu Fe</p>
+      <p class="sales-guide-desc">Guía completa con: <strong>Reflexiones, Meditaciones y Oraciones Diarias</strong> para crecer en la Espiritualidad Mariana cada día del año</p>
+      <img src="assets/produto.png" alt="365 Días con María" class="sales-prod-img">
+      <div class="price-block">
+        <span class="price-de">DE $27,00</span>
+        <span class="price-por"> POR SOLO</span>
+        <span class="price-value" style="color:#16A34A;">$9,90</span>
+        <span class="price-parcel">o 8 cuotas de $1,24</span>
+      </div>
+
+      <!-- Caja de moneda local -->
+      <div id="currency-box" style="display:none;background:#F0FDF4;border:1.5px solid #16A34A;border-radius:12px;padding:10px 14px;margin:0 0 14px;text-align:center;">
+        <p style="font-size:11px;color:#6B7280;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Valor estimado en tu país</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+          <span id="currency-flag" style="font-size:26px;line-height:1;"></span>
+          <div style="text-align:left;">
+            <p id="currency-country" style="font-size:12px;font-weight:700;color:#374151;margin-bottom:2px;"></p>
+            <p id="currency-price" style="font-size:22px;font-weight:900;color:#16A34A;line-height:1;"></p>
+          </div>
+        </div>
+        <p style="font-size:10px;color:#9CA3AF;margin-top:6px;">Taxa de câmbio atualizada hoje</p>
+      </div>
+    </div>
+
+    <!-- Título fuera del bloque verde -->
+    <p style="font-size:18px;font-weight:800;color:#111827;text-align:center;padding:20px 20px 0;">¿Qué está incluido en tu paquete devocional?</p>
+
+    <!-- Bloque verde empieza en los ítems -->
+    <div style="background:#f0fdf4;border:2px solid #16A34A;border-radius:16px;margin:12px 16px;padding:18px;">
+
+      <div class="benefit-block">
+        <p class="benefit-block-title">📖 Devocional Mariano 365 días</p>
+        <p class="benefit-block-text" style="color:#166534;">• ¡Recibirás tu devocional en pocos minutos, con entrega 100% garantizada! Y cada mes recibirás un nuevo devocional.</p>
+      </div>
+
+      <div class="benefit-block">
+        <p class="benefit-block-title">💬 Grupo Exclusivo en WhatsApp (Bono)</p>
+        <p class="benefit-block-text" style="color:#166534;">• Te añadiremos a nuestro grupo exclusivo con mujeres que siguen el devocional; tenemos una comunidad hermosa con personas maravillosas.</p>
+      </div>
+
+      <div class="benefit-block">
+        <p class="benefit-block-title">📚 Lectura Espiritual</p>
+        <p class="benefit-block-text" style="color:#166534;">• Textos bíblicos: Versículos o pasajes específicos de la Biblia.<br>• Devocionales escritos: Libros o guías con reflexiones diarias basadas en temas bíblicos o espirituales.</p>
+      </div>
+
+      <div class="benefit-block">
+        <p class="benefit-block-title">🧘 Reflexión Personal</p>
+        <p class="benefit-block-text" style="color:#166534;">• Tiempo para meditar sobre lo leído, conectar el mensaje con la vida cotidiana.<br>• Preguntas introspectivas, como: "¿Qué me enseña esto?" o "¿Cómo puedo aplicarlo hoy?"</p>
+      </div>
+
+      <div class="benefit-block">
+        <p class="benefit-block-title">🙏 Oración</p>
+        <p class="benefit-block-text" style="color:#166534;">• Un momento de diálogo con Dios, incluyendo:<br>• Agradecimientos.<br>• Peticiones de orientación, fortaleza o intercesión.<br>• Intercesión por otras personas.</p>
+      </div>
+
+      <div class="benefit-block">
+        <p class="benefit-block-title">🎵 Adoración</p>
+        <p class="benefit-block-text" style="color:#166534;">• Un momento de diálogo con Dios, incluyendo:<br>• Cantar o escuchar música que glorifique a Dios.<br>• Reconocer la grandeza de Dios en silencio o en palabras.</p>
+      </div>
+
+      <div class="benefit-block" style="margin-bottom:0;">
+        <p class="benefit-block-title">✍️ Escritura o Diario Espiritual</p>
+        <p class="benefit-block-text" style="color:#166534;">• Anotar pensamientos, revelaciones u oraciones inspirados en la lectura o meditación.<br>• Registrar desafíos, bendiciones o respuestas a las oraciones.</p>
+      </div>
+
+    </div>
+
+    <!-- Botón y precio fuera del bloque, fondo blanco -->
+    <div style="padding:16px 20px;">
+      <a href="#" class="btn btn-green">¡QUIERO A MARÍA CONMIGO!</a>
+      <p style="text-align:center;font-size:13px;margin-top:8px;color:#111827;">De <s style="color:#EF4444;">$27</s> por solo <strong style="color:#16A34A;">$9,90</strong> o 8 cuotas de $1,24</p>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Lo que encontrarás -->
+    <div class="sales-section">
+      <p class="highlight-box-title" style="margin-bottom:14px;">LO QUE ENCONTRARÁS DENTRO DE<br>365 DÍAS CON MARÍA</p>
+      <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:6px;">
+        <img src="assets/produto.png" alt="365 Días con María" style="width:115px;border-radius:10px;flex-shrink:0;object-fit:cover;">
+        <div class="check-list" style="flex:1;margin:0;">
+          <div class="check-row">
+            <div class="check-circle">✓</div>
+            <p class="check-label"><strong style="color:#2563EB;">Reflexiones diarias</strong> basadas en la vida de María y en los valores cristianos, inspiradoras para tu día.</p>
+          </div>
+          <div class="check-row">
+            <div class="check-circle">✓</div>
+            <p class="check-label"><strong style="color:#2563EB;">Oraciones variadas</strong> para fortalecer tu fe y aumentar tu confianza en Dios.</p>
+          </div>
+          <div class="check-row">
+            <div class="check-circle">✓</div>
+            <p class="check-label"><strong style="color:#2563EB;">Desafíos prácticos</strong> para aplicar las enseñanzas de María en tu vida diaria con amor y sabiduría.</p>
+          </div>
+          <div class="check-row">
+            <div class="check-circle">✓</div>
+            <p class="check-label"><strong style="color:#2563EB;">Pasajes bíblicos</strong> seleccionados para iluminar tu camino, trayendo sabiduría y paz.</p>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:13px;color:#374151;line-height:1.65;text-align:center;margin-bottom:16px;margin-top:6px;">Este devocional es una <strong>invitación diaria al crecimiento espiritual</strong> y un llamado a la <strong>oración, reflexión y fortalecimiento de la fe.</strong> Con María como inspiración, serás guiado hacia una <strong>vida más plena y conectada a Cristo.</strong></p>
+
+      <div class="cat-card">
+        <p class="cat-title">🔗 Conexión Espiritual</p>
+        <p class="cat-desc">• Profundizar tu relación con Dios y con lo divino.<br>• Encontrar propósito y claridad sobre el sentido de la vida.</p>
+      </div>
+      <div class="cat-card">
+        <p class="cat-title">☮️ Paz Interior</p>
+        <p class="cat-desc">• Desarrollar una mente más tranquila, especialmente al comenzar el día con reflexión y oración.<br>• Aprender a enfrentar mejor los desafíos y encontrar respuestas efectivas.</p>
+      </div>
+      <div class="cat-card">
+        <p class="cat-title">🪞 Autoconocimiento</p>
+        <p class="cat-desc">• Reflexionar sobre tus valores, acciones y áreas que necesitan crecimiento.<br>• Descubrir fortalezas internas y formas de mejorar las relaciones.</p>
+      </div>
+      <div class="cat-card">
+        <p class="cat-title">📅 Disciplina y Constancia</p>
+        <p class="cat-desc">• Crear una rutina saludable que equilibre la mente y el espíritu.<br>• Desarrollar hábitos saludables que pueden transformar tu vida.</p>
+      </div>
+      <div class="cat-card">
+        <p class="cat-title">🌟 Gratitud y Positividad</p>
+        <p class="cat-desc">• Enfocarse en las bendiciones y los aspectos positivos de la vida, incluso en los días difíciles.<br>• Reestructurar tu perspectiva para ver con más esperanza.</p>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- CTA central -->
+    <div style="padding:20px;text-align:center;">
+      <img src="assets/imagem6.png" alt="Nuestra Señora" style="width:100%;border-radius:14px;margin-bottom:20px;">
+      <a href="#" class="btn btn-green" style="margin-bottom:8px;">¡QUIERO A MARÍA CONMIGO!</a>
+      <p style="text-align:center;font-size:13px;margin-top:8px;color:#111827;">De <s style="color:#EF4444;">$27</s> por solo <strong style="color:#16A34A;">$9,90</strong> o 8 cuotas de $1,24</p>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Testimonios -->
+    <div class="sales-section">
+      <p class="testimonials-title">¿Es confiable nuestro Devocional?</p>
+      <p class="testimonials-sub">¡SÍ! 100% aquí hay algunas reseñas de personas que ya lo adquirieron! 👇</p>
+
+      <div class="carousel-outer">
+        <button class="c-arrow c-arrow-left" id="c-prev" onclick="carouselPrev()">&#8249;</button>
+        <div class="carousel" id="carousel">
+          <div class="c-track" id="c-track">
+            <div class="c-slide"><img src="assets/carrosel1.png" alt="Testimonio 1"></div>
+            <div class="c-slide"><img src="assets/carrosel2.png" alt="Testimonio 2"></div>
+            <div class="c-slide"><img src="assets/carrosel3.png" alt="Testimonio 3"></div>
+            <div class="c-slide"><img src="assets/carrosel4.png" alt="Testimonio 4"></div>
+          </div>
+        </div>
+        <button class="c-arrow c-arrow-right" id="c-next" onclick="carouselNext()">&#8250;</button>
+      </div>
+      <div class="c-dots" id="c-dots"></div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- CTA final -->
+    <div style="padding:20px;text-align:center;">
+      <a href="#" class="btn btn-green" style="margin-bottom:8px;">¡QUIERO A MARÍA CONMIGO!</a>
+      <p style="text-align:center;font-size:13px;margin-top:8px;color:#111827;">De <s style="color:#EF4444;">$27</s> por solo <strong style="color:#16A34A;">$9,90</strong> o 8 cuotas de $1,24</p>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Garantía -->
+    <div class="guarantee-block">
+      <p class="guarantee-title">¿Tiene Garantía?</p>
+      <p class="guarantee-text">¡SÍ! Estamos tan seguros de que nuestro Devocional te ayudará que garantizamos un reembolso total dentro de los 90 días posteriores a la compra.</p>
+      <img src="assets/garantia.png" alt="Garantía 90 Días" class="guarantee-badge">
+    </div>
+  </div><!-- /screen-11 -->
+
+</div><!-- /quiz-container -->
+
+<script>
+  /* ─── Estado ─── */
+  var nomeUsuario = '';
+  var preceUsuario = '';
+  var isPlaying   = false;
+  var waveInterval = null;
+
+  /* ─── Progreso por pantalla (debajo del logo) ─── */
+  var progressMap = { 2:12, 3:25, 4:38, 5:51, 6:63, 7:74, 8:83, 9:92, 10:100 };
+
+  function setTopBar(n) {
+    var pct = progressMap[n];
+    if (!pct) return;
+    var screen = document.getElementById('screen-' + n);
+    if (!screen) return;
+    var fill = screen.querySelector('.progress-fill');
+    if (!fill) return;
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    setTimeout(function(){
+      fill.style.transition = '';
+      fill.style.width = pct + '%';
+    }, 60);
+  }
+
+  /* ─── Navegación ─── */
+  function goTo(n) {
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    var next = document.getElementById('screen-' + n);
+    if (next) {
+      next.classList.add('active');
+      window.scrollTo(0, 0);
+    }
+    setTopBar(n);
+    if (n === 10) startLoading();
+    if (n === 11) initCarousel();
+  }
+
+  /* ─── Pantalla 2: submit nombre ─── */
+  function submitNome() {
+    var v = document.getElementById('nome-input').value.trim();
+    if (!v) {
+      document.getElementById('nome-input').focus();
+      return;
+    }
+    nomeUsuario = v.charAt(0).toUpperCase() + v.slice(1);
+    document.getElementById('nome-confirm').textContent = nomeUsuario;
+    document.getElementById('nome-prece').textContent   = nomeUsuario;
+    goTo(3);
+  }
+
+  /* ─── Pantalla 8: submit oración ─── */
+  function submitPrece() {
+    var v = document.getElementById('prece-input').value.trim();
+    preceUsuario = v || 'mi intención';
+    document.getElementById('prece-display').textContent = '"' + preceUsuario + '"';
+    goTo(9);
+  }
+
+  /* ─── Seleccionar opción y avanzar ─── */
+  function selectAndGo(el, next) {
+    el.classList.add('selected');
+    setTimeout(function(){ goTo(next); }, 380);
+  }
+
+  /* ─── Bloqueo de botones hasta escribir ─── */
+  document.getElementById('nome-input').addEventListener('input', function(){
+    document.getElementById('btn-nome').disabled = this.value.trim() === '';
+  });
+  document.getElementById('prece-input').addEventListener('input', function(){
+    document.getElementById('btn-prece').disabled = this.value.trim() === '';
+  });
+
+  /* ─── Enter en campo de nombre ─── */
+  document.getElementById('nome-input').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') submitNome();
+  });
+
+  /* ─── Pantalla 7: reproductor de audio estilo Instagram ─── */
+  var audioTotalSec = 32;
+  var audioCurrentSec = 0;
+  var audioTimer = null;
+  var waveHeights = [8,12,18,24,20,14,22,28,18,12,16,24,20,14,10,18,26,22,16,12,20,24,18,14,10,16,22,28,20,14,18,12,8,10,16];
+
+  (function buildWaveform() {
+    var wf = document.getElementById('waveform');
+    waveHeights.forEach(function(h) {
+      var bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      bar.style.height = h + 'px';
+      wf.appendChild(bar);
+    });
+  })();
+
+  function updateTimer() {
+    var rem = audioTotalSec - audioCurrentSec;
+    var m = Math.floor(rem / 60);
+    var s = rem % 60;
+    document.getElementById('audio-time').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    var bars = document.querySelectorAll('.wave-bar');
+    var prog = audioCurrentSec / audioTotalSec;
+    bars.forEach(function(bar, i) {
+      bar.classList.toggle('played', i / bars.length < prog);
+    });
+  }
+
+  function togglePlay() {
+    isPlaying = !isPlaying;
+    var icon = document.getElementById('play-icon');
+    if (isPlaying) {
+      icon.setAttribute('points', '6,3 10,3 10,21 6,21');
+      var rect2 = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      rect2.setAttribute('points','14,3 18,3 18,21 14,21');
+      rect2.id = 'pause-bar2';
+      icon.parentNode.appendChild(rect2);
+      waveInterval = setInterval(function() {
+        document.querySelectorAll('.wave-bar:not(.played)').forEach(function(bar) {
+          bar.style.height = (Math.floor(Math.random() * 20) + 6) + 'px';
+        });
+      }, 100);
+      audioTimer = setInterval(function() {
+        audioCurrentSec++;
+        updateTimer();
+        if (audioCurrentSec >= audioTotalSec) {
+          clearInterval(audioTimer);
+          clearInterval(waveInterval);
+          isPlaying = false;
+          icon.setAttribute('points', '5,3 19,12 5,21');
+          var pb2 = document.getElementById('pause-bar2');
+          if (pb2) pb2.remove();
+          audioCurrentSec = 0;
+          updateTimer();
+          resetWave();
+        }
+      }, 1000);
+    } else {
+      icon.setAttribute('points', '5,3 19,12 5,21');
+      var pb2 = document.getElementById('pause-bar2');
+      if (pb2) pb2.remove();
+      clearInterval(waveInterval);
+      clearInterval(audioTimer);
+    }
+  }
+
+  function resetWave() {
+    document.querySelectorAll('.wave-bar').forEach(function(bar, i) {
+      bar.style.height = (waveHeights[i] || 14) + 'px';
+      bar.classList.remove('played');
+    });
+  }
+
+  /* ─── Pantalla 10: barra de carga (8 s) ─── */
+  function startLoading() {
+    var bar  = document.getElementById('loading-bar');
+    var pct  = document.getElementById('loading-pct');
+    var cur  = 0;
+    var total = 8000;
+    var step  = 100;
+
+    var timer = setInterval(function() {
+      cur += step;
+      var p = Math.min(Math.round((cur / total) * 100), 100);
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+      if (p >= 100) {
+        clearInterval(timer);
+        setTimeout(function(){ goTo(11); }, 400);
+      }
+    }, step);
+  }
+
+  /* ─── Carrusel de testimonios ─── */
+  function initCarousel() {
+    var track  = document.getElementById('c-track');
+    var dots   = document.getElementById('c-dots');
+    var slides = track.querySelectorAll('.c-slide');
+    var cur    = 0;
+    var total  = slides.length;
+    var startX = 0;
+
+    dots.innerHTML = '';
+    slides.forEach(function(_, i) {
+      var d = document.createElement('button');
+      d.className = 'c-dot' + (i === 0 ? ' on' : '');
+      d.onclick = function(){ moveTo(i); };
+      dots.appendChild(d);
+    });
+
+    function moveTo(n) {
+      cur = (n + total) % total;
+      window._carouselCur = cur;
+      track.style.transform = 'translateX(-' + (cur * 100) + '%)';
+      dots.querySelectorAll('.c-dot').forEach(function(d, i){
+        d.classList.toggle('on', i === cur);
+      });
+    }
+
+    window._carouselCur = 0;
+    window._carouselMove = moveTo;
+
+    var carousel = document.getElementById('carousel');
+    carousel.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; }, {passive:true});
+    carousel.addEventListener('touchend',   function(e){
+      var dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 40) moveTo(dx < 0 ? cur + 1 : cur - 1);
+    }, {passive:true});
+
+    setInterval(function(){ moveTo(cur + 1); }, 4000);
+  }
+
+  function carouselPrev() { if (window._carouselMove) window._carouselMove(window._carouselCur - 1); }
+  function carouselNext() { if (window._carouselMove) window._carouselMove(window._carouselCur + 1); }
+
+  /* ─── Conversor de moeda por IP ─── */
+  (function() {
+    var BASE_USD = 9.90;
+
+    function flagEmoji(code) {
+      return code.toUpperCase().replace(/./g, function(c) {
+        return String.fromCodePoint(127397 + c.charCodeAt(0));
+      });
+    }
+
+    function showCurrencyBox(flag, country, symbol, amount) {
+      var box = document.getElementById('currency-box');
+      if (!box) return;
+      document.getElementById('currency-flag').textContent = flag;
+      document.getElementById('currency-country').textContent = country;
+      document.getElementById('currency-price').textContent = symbol + ' ' + amount;
+      box.style.display = 'block';
+    }
+
+    fetch('https://ipapi.co/json/')
+      .then(function(r) { return r.json(); })
+      .then(function(geo) {
+        var currency    = geo.currency    || 'USD';
+        var countryName = geo.country_name || '';
+        var countryCode = geo.country_code || 'US';
+        var flag = flagEmoji(countryCode);
+
+        if (currency === 'USD') {
+          showCurrencyBox(flag, countryName, 'USD', BASE_USD.toFixed(2));
+          return;
+        }
+
+        fetch('https://open.er-api.com/v6/latest/USD')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var rate = (data.rates && data.rates[currency]) ? data.rates[currency] : 1;
+            var converted = (BASE_USD * rate).toFixed(2);
+            showCurrencyBox(flag, countryName, currency, converted);
+          })
+          .catch(function() {
+            showCurrencyBox(flag, countryName, 'USD', BASE_USD.toFixed(2));
+          });
+      })
+      .catch(function() {});
+  })();
+</script>
+</body>
+</html>
