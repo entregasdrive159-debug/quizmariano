@@ -755,6 +755,8 @@
     <p class="title-black">Oremos juntos con fe y confianza.</p>
     <p class="body-text">Haz clic en el botón de abajo para escuchar esta oración y poner tus intenciones bajo la protección del Corazón Inmaculado de María. 🙏 🌹❤️</p>
 
+    <audio id="audio-player" src="assets/oracao.mp3" preload="metadata"></audio>
+
     <div class="audio-insta">
       <img src="assets/padre.png" alt="Padre" class="audio-avatar">
       <div class="audio-bubble">
@@ -764,7 +766,7 @@
           </svg>
         </button>
         <div class="waveform" id="waveform"></div>
-        <span class="audio-time" id="audio-time">0:32</span>
+        <span class="audio-time" id="audio-time">--:--</span>
       </div>
     </div>
 
@@ -1137,11 +1139,10 @@
     if (e.key === 'Enter') submitNome();
   });
 
-  /* ─── Pantalla 7: reproductor de audio estilo Instagram ─── */
-  var audioTotalSec = 32;
-  var audioCurrentSec = 0;
-  var audioTimer = null;
+  /* ─── Pantalla 7: reproductor de audio real ─── */
   var waveHeights = [8,12,18,24,20,14,22,28,18,12,16,24,20,14,10,18,26,22,16,12,20,24,18,14,10,16,22,28,20,14,18,12,8,10,16];
+  var waveInterval = null;
+  var audioEl = document.getElementById('audio-player');
 
   (function buildWaveform() {
     var wf = document.getElementById('waveform');
@@ -1153,53 +1154,67 @@
     });
   })();
 
-  function updateTimer() {
-    var rem = audioTotalSec - audioCurrentSec;
-    var m = Math.floor(rem / 60);
-    var s = rem % 60;
-    document.getElementById('audio-time').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  function fmtTime(sec) {
+    sec = Math.floor(sec || 0);
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  audioEl.addEventListener('loadedmetadata', function() {
+    document.getElementById('audio-time').textContent = fmtTime(audioEl.duration);
+  });
+
+  audioEl.addEventListener('timeupdate', function() {
+    var rem = audioEl.duration - audioEl.currentTime;
+    document.getElementById('audio-time').textContent = fmtTime(rem);
     var bars = document.querySelectorAll('.wave-bar');
-    var prog = audioCurrentSec / audioTotalSec;
+    var prog = audioEl.currentTime / audioEl.duration;
     bars.forEach(function(bar, i) {
       bar.classList.toggle('played', i / bars.length < prog);
     });
+  });
+
+  audioEl.addEventListener('ended', function() {
+    isPlaying = false;
+    setPlayIcon(false);
+    clearInterval(waveInterval);
+    resetWave();
+    document.getElementById('audio-time').textContent = fmtTime(audioEl.duration);
+  });
+
+  function setPlayIcon(playing) {
+    var icon = document.getElementById('play-icon');
+    var pb2  = document.getElementById('pause-bar2');
+    if (playing) {
+      icon.setAttribute('points', '6,3 10,3 10,21 6,21');
+      if (!pb2) {
+        pb2 = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+        pb2.setAttribute('points','14,3 18,3 18,21 14,21');
+        pb2.id = 'pause-bar2';
+        icon.parentNode.appendChild(pb2);
+      }
+    } else {
+      icon.setAttribute('points', '5,3 19,12 5,21');
+      if (pb2) pb2.remove();
+    }
   }
 
   function togglePlay() {
-    isPlaying = !isPlaying;
-    var icon = document.getElementById('play-icon');
-    if (isPlaying) {
-      icon.setAttribute('points', '6,3 10,3 10,21 6,21');
-      var rect2 = document.createElementNS('http://www.w3.org/2000/svg','polygon');
-      rect2.setAttribute('points','14,3 18,3 18,21 14,21');
-      rect2.id = 'pause-bar2';
-      icon.parentNode.appendChild(rect2);
+    if (audioEl.paused) {
+      audioEl.play();
+      isPlaying = true;
+      setPlayIcon(true);
       waveInterval = setInterval(function() {
         document.querySelectorAll('.wave-bar:not(.played)').forEach(function(bar) {
           bar.style.height = (Math.floor(Math.random() * 20) + 6) + 'px';
         });
       }, 100);
-      audioTimer = setInterval(function() {
-        audioCurrentSec++;
-        updateTimer();
-        if (audioCurrentSec >= audioTotalSec) {
-          clearInterval(audioTimer);
-          clearInterval(waveInterval);
-          isPlaying = false;
-          icon.setAttribute('points', '5,3 19,12 5,21');
-          var pb2 = document.getElementById('pause-bar2');
-          if (pb2) pb2.remove();
-          audioCurrentSec = 0;
-          updateTimer();
-          resetWave();
-        }
-      }, 1000);
     } else {
-      icon.setAttribute('points', '5,3 19,12 5,21');
-      var pb2 = document.getElementById('pause-bar2');
-      if (pb2) pb2.remove();
+      audioEl.pause();
+      isPlaying = false;
+      setPlayIcon(false);
       clearInterval(waveInterval);
-      clearInterval(audioTimer);
     }
   }
 
